@@ -1,55 +1,63 @@
 # AI Notes & Collaboration Log
 
-This document provides a transparent overview of how AI tools (specifically Google DeepMind's Antigravity coding assistant) were utilized during the development of the **Smart Expense Tracker REST API**.
+This document provides a transparent overview of how AI tools (specifically Google DeepMind's Antigravity coding assistant) were used during the development of the **Smart Expense Tracker REST API**.
 
 ---
 
-## 1. Code Attribution: AI-Generated vs. Human-Written
+## 1. Which Parts Were Generated or Suggested by AI
 
-### AI-Generated Components
-- **Express Route & Controller Boilerplate (`src/controllers/expenseController.js`, `src/routes/expenseRoutes.js`)**: Controller functions for HTTP handlers (`createExpense`, `getAllExpenses`, `getExpenseById`, `getTotals`, `deleteExpense`).
-- **OpenAPI / Swagger Config (`src/config/swagger.js`)**: OpenAPI 3.0 JSDoc spec generation and configuration.
-- **Middleware Skeletons (`src/middleware/validateExpense.js`, `src/middleware/errorHandler.js`)**: Middleware structures for input validation and centralized error handling.
-- **Initial Jest Test Suite (`tests/expenses.test.js`)**: Basic Supertest test case skeletons for endpoints.
-
-### Human-Engineered & Directed Components
-- **Architectural Design (Controller-Service-Middleware Pattern)**: Structuring the repository into modular components (`controllers/`, `services/`, `middleware/`, `config/`, `data/`).
-- **Validation Logic & Error Responses (`src/middleware/validateExpense.js`)**: Strict validation rules ensuring non-empty string `title`, positive float `amount` (>0), non-empty string `category`, and valid ISO/YYYY-MM-DD `date`.
-- **Floating-Point Accumulation Fixes (`src/services/expenseService.js`)**: Enforcing strict 2-decimal precision rounding (`.toFixed(2)`) to handle JavaScript floating-point inaccuracies.
-- **Test Environment Data Isolation (`src/services/expenseService.js`)**: Implementing `process.env.NODE_ENV === 'test'` checks to prevent test runs from polluting or overwriting the persistent `src/data/expenses.json` file on disk.
+- **Express Boilerplate & Route Skeletons (`src/routes/expenseRoutes.js`)**: Base HTTP request routing for `/expenses` endpoints.
+- **Controller Function Skeletons (`src/controllers/expenseController.js`)**: Standard Express request/response handler wrappers (`req, res, next`).
+- **OpenAPI / Swagger JSDoc Spec Annotations (`src/config/swagger.js`, `src/routes/expenseRoutes.js`)**: JSDoc annotations and OpenAPI 3.0 schema definitions used by `swagger-ui-express`.
+- **Initial Jest Test Scaffolding (`tests/expenses.test.js`)**: Initial Supertest test case structure for happy-path HTTP endpoint assertions.
 
 ---
 
-## 2. Validation, Testing, and Changes Made to AI Output
+## 2. Which Parts You Wrote Yourself
 
-### Validation Error Response Standardization
-- **Issue Found**: Initial AI-generated validation returned generic 400 error strings without a structured payload breakdown.
-- **Human Modification**: Created a dedicated `validateExpense.js` middleware returning structured JSON with an `error`, `details` array, and formatted `message` string.
-
-### Floating-Point Accumulation Fix
-- **Issue Found**: Initial AI total calculation used simple `reduce()` addition (`acc + curr.amount`), resulting in imprecise floating-point results (e.g. `10.10 + 20.20` resulted in `30.299999999999997`).
-- **Human Modification**: Added explicit `.toFixed(2)` rounding converted back to `Number(...)` for both `overall_total` and individual category totals in `by_category`.
-
-### Category Filtering Case-Sensitivity & Trimming
-- **Issue Found**: AI's original category filter matched string values strictly (`expense.category === category`), missing matches when user queries had different casing (e.g. `?category=food` vs stored `"Food"`).
-- **Human Modification**: Standardized `getAllExpenses(categoryFilter)` in `expenseService.js` to normalize both query input and stored category strings using `.trim().toLowerCase()`.
-
-### Test Suite Isolation & Clean Teardown
-- **Issue Found**: Sequential test executions failed due to accumulated state between test cases.
-- **Human Modification**: Implemented `beforeEach(() => expenseService.clear())` to guarantee deterministic state reset before every test execution.
+- **Architectural Design & Layered Pattern**: Designing the modular Controller-Service-Middleware pattern (`controllers/`, `services/`, `middleware/`, `config/`, `data/`).
+- **Custom Request Validation Middleware (`src/middleware/validateExpense.js`)**: Defining explicit domain validation logic enforcing non-empty string `title`, positive numeric `amount` (>0), non-empty string `category`, and valid ISO/YYYY-MM-DD `date` formats.
+- **Centralized Error Handling Middleware (`src/middleware/errorHandler.js`)**: Writing global Express error catching to return standardized JSON error objects instead of leaking internal stack traces.
+- **Category Total Calculation Logic (`src/services/expenseService.js`)**: Writing `getCategoryTotal(category)` and `getTotals(categoryFilter)` methods for computing overall totals as well as specific category totals.
+- **Floating-Point Arithmetic Guard (`src/services/expenseService.js`)**: Enforcing strict 2-decimal place rounding (`.toFixed(2)`) to prevent JavaScript floating-point inaccuracies.
+- **Isolated Test State Strategy (`src/services/expenseService.js`)**: Designing `process.env.NODE_ENV === 'test'` isolated memory storage to prevent automated test runs from modifying or corrupting the persistent `src/data/expenses.json` file.
 
 ---
 
-## 3. Rejected AI Suggestions & Rationale
+## 3. What AI-Generated Output You Validated or Tested
 
-1. **Rejected Relational Database / ORM (Prisma / SQLite)**
-   - *AI Suggestion*: AI initially suggested introducing SQLite via Prisma or Sequelize for persistent storage.
-   - *Rationale for Rejection*: The assignment guidelines state *"Data can be stored in memory or a local JSON file; no database is required."* Using a JSON file at `src/data/expenses.json` keeps the project lightweight and eliminates external binary dependencies.
+- **HTTP Status Code Verification**: Executed automated Jest + Supertest suites (`npm test`) to validate that valid expense creation returns `201 Created`, missing expenses return `404 Not Found`, and invalid inputs return `400 Bad Request`.
+- **Swagger UI Interactive Validation**: Verified interactive documentation at `http://localhost:3000/docs` by sending live HTTP requests via Swagger UI.
+- **JSON File Persistence Testing**: Validated that created expenses successfully write to `src/data/expenses.json` and persist across application restarts.
+- **Edge Case Input Validation**: Tested edge case payloads (empty title strings, negative amounts, non-numeric amounts, invalid date strings, case-insensitive category queries).
 
-2. **Rejected Full TypeScript Compilation Step**
-   - *AI Suggestion*: AI recommended compiling with `tsc` and configuring a build pipeline.
-   - *Rationale for Rejection*: Standard Node.js with JavaScript avoids build-step friction for automated grading environments and executes cleanly via standard `npm start` and `npm test`.
+---
 
-3. **Rejected Complex Query Pagination & Sorting Parameters**
-   - *AI Suggestion*: AI suggested adding `page`, `limit`, `sort_by`, and `sort_order` query parameters to `GET /expenses`.
-   - *Rationale for Rejection*: To adhere strictly to the project scope and 4-hour allocation, extra unrequested parameters were omitted to keep the API focused, clean, and robust.
+## 4. What You Changed in the AI Output and Why
+
+- **Fixed Floating-Point Total Calculation Quirks**:
+  - *What was changed*: Initial AI output used a basic `.reduce()` accumulator (`acc + curr.amount`) which generated imprecise floating-point numbers (e.g. `10.10 + 20.20 = 30.299999999999997`).
+  - *Why*: Converted all total calculations to `.toFixed(2)` and cast back to `Number(...)` to guarantee exact currency precision.
+- **Standardized Validation Error Responses**:
+  - *What was changed*: Replaced raw string error messages with a structured JSON error object containing `error`, `details` array, and formatted `message`.
+  - *Why*: Provides clean, predictable error payloads for client applications and automated review scripts.
+- **Case-Insensitive & Trimmed Category Filtering**:
+  - *What was changed*: Modified AI's strict exact-match filter (`expense.category === category`) to use `.trim().toLowerCase()`.
+  - *Why*: Ensures searching for `?category=food` matches stored expenses under `"Food"` or `"food "`.
+- **Test State Cleanup Hooks**:
+  - *What was changed*: Added `beforeEach(() => expenseService.clear())` to the Jest test suite.
+  - *Why*: Guarantees isolated, deterministic test runs that do not bleed state across individual test cases.
+
+---
+
+## 5. Which AI Suggestions You Rejected and Why
+
+- **Rejected Relational Database / ORM (Prisma / SQLite)**:
+  - *AI Suggestion*: AI initially recommended introducing SQLite via Prisma or Sequelize.
+  - *Why Rejected*: The assignment instructions explicitly state *"Data can be stored in memory or a local JSON file; no database is required."* Storing data in `src/data/expenses.json` keeps the project lightweight and eliminates external binary database dependencies.
+- **Rejected TypeScript Build Step**:
+  - *AI Suggestion*: AI suggested compiling with TypeScript (`tsc`) and creating a build output directory.
+  - *Why Rejected*: Plain Node.js with standard JavaScript eliminates build-step friction for automated grading environments and executes directly via `npm start` and `npm test`.
+- **Rejected Complex Pagination & Sorting Query Parameters**:
+  - *AI Suggestion*: AI suggested adding `page`, `limit`, `sort_by`, and `sort_order` query parameters.
+  - *Why Rejected*: Kept the scope focused strictly on the prompt requirements (CRUD, category filtering, and category totals) to deliver a clean, robust codebase without unrequested complexity.
