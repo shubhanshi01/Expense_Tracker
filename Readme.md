@@ -4,7 +4,7 @@ A lightweight, robust, and fully-tested REST API for managing personal expenses,
 
 ---
 
-## What You Built
+## What I Built
 
 The **Smart Expense Tracker REST API** is a personal expense management service that enables users to:
 - **Add expenses** with fields `id` (auto-generated UUID), `title`, `amount`, `category`, and `date`. Includes strict input validation.
