@@ -1,0 +1,37 @@
+{
+  "name": "smart-expense-tracker-api",
+  "version": "1.0.0",
+  "description": "Smart Expense Tracker REST API in Node.js Express for Diligent SE Apprenticeship",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "jest --runInBand --detectOpenHandles"
+  },
+  "keywords": [
+    "expense-tracker",
+    "express",
+    "rest-api"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^4.22.2",
+    "swagger-jsdoc": "^6.3.0",
+    "swagger-ui-express": "^5.0.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "verbose": true
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "type": "commonjs"
+}
