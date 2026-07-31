@@ -104,7 +104,7 @@ describe('Smart Expense Tracker REST API Test Suite', () => {
       expect(res.body.length).toBe(2);
     });
 
-    it('should filter expenses by category case-insensitively', async () => {
+    it('should filter expenses by category via query parameter (?category=food)', async () => {
       await request(app).post('/expenses').send({
         title: 'Burger',
         amount: 10,
@@ -123,9 +123,29 @@ describe('Smart Expense Tracker REST API Test Suite', () => {
       expect(res.body.length).toBe(1);
       expect(res.body[0].title).toBe('Burger');
     });
+
+    it('should filter expenses by category via path parameter (/expenses/category/food)', async () => {
+      await request(app).post('/expenses').send({
+        title: 'Pizza',
+        amount: 18.5,
+        category: 'Food',
+        date: '2026-07-31'
+      });
+      await request(app).post('/expenses').send({
+        title: 'Subway Pass',
+        amount: 30,
+        category: 'Transport',
+        date: '2026-07-31'
+      });
+
+      const res = await request(app).get('/expenses/category/Food');
+      expect(res.status).toBe(200);
+      expect(res.body.length).toBe(1);
+      expect(res.body[0].title).toBe('Pizza');
+    });
   });
 
-  describe('GET /expenses/totals', () => {
+  describe('GET /expenses/totals & Category Totals', () => {
     it('should calculate overall total and by-category breakdown accurately', async () => {
       await request(app).post('/expenses').send({
         title: 'Grocery 1',
@@ -154,6 +174,48 @@ describe('Smart Expense Tracker REST API Test Suite', () => {
         Food: 36,
         Transport: 40
       });
+    });
+
+    it('should calculate total for a specific category via /expenses/totals/category/:category', async () => {
+      await request(app).post('/expenses').send({
+        title: 'Lunch',
+        amount: 25.0,
+        category: 'Food',
+        date: '2026-07-31'
+      });
+      await request(app).post('/expenses').send({
+        title: 'Dinner',
+        amount: 35.0,
+        category: 'Food',
+        date: '2026-07-31'
+      });
+      await request(app).post('/expenses').send({
+        title: 'Train Ticket',
+        amount: 15.0,
+        category: 'Transport',
+        date: '2026-07-31'
+      });
+
+      const res = await request(app).get('/expenses/totals/category/Food');
+      expect(res.status).toBe(200);
+      expect(res.body.category).toBe('Food');
+      expect(res.body.total_amount).toBe(60.0);
+      expect(res.body.total_count).toBe(2);
+    });
+
+    it('should calculate total for a specific category via query parameter /expenses/totals?category=Food', async () => {
+      await request(app).post('/expenses').send({
+        title: 'Snack',
+        amount: 10.0,
+        category: 'Food',
+        date: '2026-07-31'
+      });
+
+      const res = await request(app).get('/expenses/totals?category=Food');
+      expect(res.status).toBe(200);
+      expect(res.body.category).toBe('Food');
+      expect(res.body.total_amount).toBe(10.0);
+      expect(res.body.total_count).toBe(1);
     });
   });
 

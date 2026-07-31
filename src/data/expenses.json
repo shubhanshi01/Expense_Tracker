@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "id": "9ab82e8f-ed83-4606-9243-76aa4cb0111b",
+    "title": "Apple",
+    "amount": 50,
+    "category": "Food",
+    "date": "2026-07-31"
+  }
+]

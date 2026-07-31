@@ -20,6 +20,16 @@ const getAllExpenses = (req, res, next) => {
   }
 };
 
+const getExpensesByCategory = (req, res, next) => {
+  try {
+    const { category } = req.params;
+    const expenses = expenseService.getExpensesByCategory(category);
+    return res.status(200).json(expenses);
+  } catch (err) {
+    next(err);
+  }
+};
+
 const getExpenseById = (req, res, next) => {
   try {
     const { id } = req.params;
@@ -35,8 +45,19 @@ const getExpenseById = (req, res, next) => {
 
 const getTotals = (req, res, next) => {
   try {
-    const totals = expenseService.getTotals();
+    const { category } = req.query;
+    const totals = expenseService.getTotals(category);
     return res.status(200).json(totals);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getCategoryTotal = (req, res, next) => {
+  try {
+    const { category } = req.params;
+    const categoryTotal = expenseService.getCategoryTotal(category);
+    return res.status(200).json(categoryTotal);
   } catch (err) {
     next(err);
   }
@@ -58,7 +79,9 @@ const deleteExpense = (req, res, next) => {
 module.exports = {
   createExpense,
   getAllExpenses,
+  getExpensesByCategory,
   getExpenseById,
   getTotals,
+  getCategoryTotal,
   deleteExpense,
 };

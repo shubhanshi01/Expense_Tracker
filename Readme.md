@@ -11,8 +11,13 @@ The Smart Expense Tracker REST API allows users to create, view, filter, summari
 ### Key Features
 - **Add Expense (`POST /expenses`)**: Creates an expense with fields: `id` (auto-generated UUID), `title`, `amount`, `category`, and `date`. Includes strict validation via middleware (`src/middleware/validateExpense.js`).
 - **View All Expenses (`GET /expenses`)**: Retrieves all stored expenses.
-- **Filter Expenses by Category (`GET /expenses?category={category_name}`)**: Filters expenses matching the category (case-insensitive).
-- **Calculate Totals (`GET /expenses/totals`)**: Calculates overall total spent, total count, and category breakdown.
+- **Filter Expenses by Category**:
+  - Path Parameter: `GET /expenses/category/:category` (e.g. `/expenses/category/Food`)
+  - Query Parameter: `GET /expenses?category=:category` (e.g. `/expenses?category=Food`)
+- **Calculate Totals (Overall & by Category)**:
+  - Overall & Category Breakdown: `GET /expenses/totals`
+  - Specific Category Total (Path): `GET /expenses/totals/category/:category`
+  - Specific Category Total (Query): `GET /expenses/totals?category=:category`
 - **Get Expense by ID (`GET /expenses/:id`)**: Retrieves a single expense by unique ID.
 - **Delete Expense (`DELETE /expenses/:id`)**: Removes an expense by unique ID.
 - **OpenAPI / Swagger Documentation (Bonus Feature)**: Interactive Swagger UI documentation available live at `http://localhost:3000/docs`.
@@ -54,7 +59,7 @@ To run the automated test suite with Jest:
 npm test
 ```
 
-All unit and integration tests cover happy paths, edge cases, category filtering, totals calculation, input validation errors, and deletion handling.
+All 16 unit and integration tests cover happy paths, edge cases, category filtering, totals calculation (overall and category-specific), input validation errors, and deletion handling.
 
 ---
 
@@ -110,33 +115,52 @@ Base URL: `http://localhost:3000`
   curl -X GET http://localhost:3000/expenses
   ```
 
-#### C. Filter Expenses by Category (`GET /expenses?category=Food`)
+#### C. Filter Expenses by Category (`GET /expenses/category/:category` or `GET /expenses?category=:category`)
 - **Method**: `GET`
-- **URL**: `http://localhost:3000/expenses?category=Food`
-- **cURL Command**:
+- **URL**: `http://localhost:3000/expenses/category/Food` or `http://localhost:3000/expenses?category=Food`
+- **cURL Commands**:
   ```bash
+  # Filter via path param
+  curl -X GET http://localhost:3000/expenses/category/Food
+
+  # Filter via query param
   curl -X GET "http://localhost:3000/expenses?category=Food"
   ```
 
-#### D. Calculate Total Expenses (`GET /expenses/totals`)
+#### D. Calculate Total for a Specific Category (`GET /expenses/totals/category/:category`)
+- **Method**: `GET`
+- **URL**: `http://localhost:3000/expenses/totals/category/Food`
+- **cURL Command**:
+  ```bash
+  curl -X GET http://localhost:3000/expenses/totals/category/Food
+  ```
+- **Sample Response**:
+  ```json
+  {
+    "category": "Food",
+    "total_amount": 45.50,
+    "total_count": 1,
+    "expenses": [
+      {
+        "id": "c1f7b0e1-23a4-4b8c-9d0a-1e2f3a4b5c6d",
+        "title": "Grocery Shopping",
+        "amount": 45.50,
+        "category": "Food",
+        "date": "2026-07-31"
+      }
+    ]
+  }
+  ```
+
+#### E. Calculate Overall Total & Category Breakdown (`GET /expenses/totals`)
 - **Method**: `GET`
 - **URL**: `http://localhost:3000/expenses/totals`
 - **cURL Command**:
   ```bash
   curl -X GET http://localhost:3000/expenses/totals
   ```
-- **Sample Response**:
-  ```json
-  {
-    "overall_total": 45.50,
-    "total_count": 1,
-    "by_category": {
-      "Food": 45.50
-    }
-  }
-  ```
 
-#### E. Get Single Expense by ID (`GET /expenses/:id`)
+#### F. Get Single Expense by ID (`GET /expenses/:id`)
 - **Method**: `GET`
 - **URL**: `http://localhost:3000/expenses/<EXPENSE_ID>`
 - **cURL Command**:
@@ -144,7 +168,7 @@ Base URL: `http://localhost:3000`
   curl -X GET http://localhost:3000/expenses/YOUR_EXPENSE_ID_HERE
   ```
 
-#### F. Delete Expense by ID (`DELETE /expenses/:id`)
+#### G. Delete Expense by ID (`DELETE /expenses/:id`)
 - **Method**: `DELETE`
 - **URL**: `http://localhost:3000/expenses/<EXPENSE_ID>`
 - **cURL Command**:
@@ -160,7 +184,9 @@ Base URL: `http://localhost:3000`
 | :--- | :--- | :--- | :--- |
 | `POST` | `/expenses` | Add a new expense | `{"title": "Groceries", "amount": 45.50, "category": "Food", "date": "2026-07-31"}` |
 | `GET` | `/expenses` | Retrieve all expenses | Optional query: `?category=Food` |
-| `GET` | `/expenses/totals` | Get total expenses summary | Returns `{ overall_total, total_count, by_category }` |
+| `GET` | `/expenses/category/:category` | Filter expenses by category path | Path param: `/expenses/category/Food` |
+| `GET` | `/expenses/totals` | Get overall expenses summary & breakdown | Returns `{ overall_total, total_count, by_category }` |
+| `GET` | `/expenses/totals/category/:category` | Get total amount for a specific category | Path param: `/expenses/totals/category/Food` |
 | `GET` | `/expenses/:id` | Get expense details by ID | Path param: `:id` |
 | `DELETE` | `/expenses/:id` | Delete an expense by ID | Path param: `:id` |
 | `GET` | `/docs` | OpenAPI / Swagger UI | Interactive Web UI |

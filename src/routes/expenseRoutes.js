@@ -41,8 +41,14 @@ router.post('/expenses', validateExpense, expenseController.createExpense);
  * @openapi
  * /expenses/totals:
  *   get:
- *     summary: Calculate total expenses (overall and by category)
+ *     summary: Calculate total expenses (overall or filtered by category)
  *     tags: [Expenses]
+ *     parameters:
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         description: Optional category name to calculate total for that category
  *     responses:
  *       200:
  *         description: Summary of total expenses
@@ -51,9 +57,47 @@ router.get('/expenses/totals', expenseController.getTotals);
 
 /**
  * @openapi
+ * /expenses/totals/category/{category}:
+ *   get:
+ *     summary: Calculate total expenses for a specific category
+ *     tags: [Expenses]
+ *     parameters:
+ *       - in: path
+ *         name: category
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Category name (e.g. Food, Transport)
+ *     responses:
+ *       200:
+ *         description: Total amount and count for the specified category
+ */
+router.get('/expenses/totals/category/:category', expenseController.getCategoryTotal);
+
+/**
+ * @openapi
+ * /expenses/category/{category}:
+ *   get:
+ *     summary: Filter expenses by specific category
+ *     tags: [Expenses]
+ *     parameters:
+ *       - in: path
+ *         name: category
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Category name to filter by
+ *     responses:
+ *       200:
+ *         description: List of expenses in the specified category
+ */
+router.get('/expenses/category/:category', expenseController.getExpensesByCategory);
+
+/**
+ * @openapi
  * /expenses:
  *   get:
- *     summary: View all expenses (optionally filtered by category)
+ *     summary: View all expenses (optionally filtered by category query)
  *     tags: [Expenses]
  *     parameters:
  *       - in: query

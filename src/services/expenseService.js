@@ -67,6 +67,10 @@ class ExpenseService {
     );
   }
 
+  getExpensesByCategory(category) {
+    return this.getAllExpenses(category);
+  }
+
   getExpenseById(id) {
     return this.expenses.find((e) => e.id === id) || null;
   }
@@ -81,7 +85,30 @@ class ExpenseService {
     return true;
   }
 
-  getTotals() {
+  getCategoryTotal(category) {
+    const filtered = this.getExpensesByCategory(category);
+    let categoryTotal = 0;
+    for (const expense of filtered) {
+      categoryTotal += expense.amount;
+    }
+    categoryTotal = Number(categoryTotal.toFixed(2));
+
+    // Find exact formatted category casing if available
+    const matchedCategoryName = filtered.length > 0 ? filtered[0].category : category;
+
+    return {
+      category: matchedCategoryName,
+      total_amount: categoryTotal,
+      total_count: filtered.length,
+      expenses: filtered,
+    };
+  }
+
+  getTotals(categoryFilter) {
+    if (categoryFilter) {
+      return this.getCategoryTotal(categoryFilter);
+    }
+
     let overallTotal = 0;
     const byCategory = {};
 
