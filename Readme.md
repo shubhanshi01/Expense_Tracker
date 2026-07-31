@@ -58,7 +58,103 @@ All unit and integration tests cover happy paths, edge cases, category filtering
 
 ---
 
-## API Endpoints Overview
+## 🧪 How to Test the API (Swagger & Postman / cURL)
+
+### 1. Interactive Testing via Swagger UI (Recommended)
+
+1. Start the server using `npm start`.
+2. Open your browser and navigate to **`http://localhost:3000/docs`**.
+3. Expand any endpoint (e.g. `POST /expenses`) and click **Try it out**.
+4. Input sample JSON body:
+   ```json
+   {
+     "title": "Groceries",
+     "amount": 45.50,
+     "category": "Food",
+     "date": "2026-07-31"
+   }
+   ```
+5. Click **Execute** to view the live HTTP status code `201 Created` and returned response object.
+
+---
+
+### 2. Testing via Postman or cURL
+
+Base URL: `http://localhost:3000`
+
+#### A. Add an Expense (`POST /expenses`)
+- **Method**: `POST`
+- **URL**: `http://localhost:3000/expenses`
+- **Headers**: `Content-Type: application/json`
+- **Body (raw JSON)**:
+  ```json
+  {
+    "title": "Grocery Shopping",
+    "amount": 45.50,
+    "category": "Food",
+    "date": "2026-07-31"
+  }
+  ```
+- **cURL Command**:
+  ```bash
+  curl -X POST http://localhost:3000/expenses \
+    -H "Content-Type: application/json" \
+    -d '{"title": "Grocery Shopping", "amount": 45.50, "category": "Food", "date": "2026-07-31"}'
+  ```
+
+#### B. View All Expenses (`GET /expenses`)
+- **Method**: `GET`
+- **URL**: `http://localhost:3000/expenses`
+- **cURL Command**:
+  ```bash
+  curl -X GET http://localhost:3000/expenses
+  ```
+
+#### C. Filter Expenses by Category (`GET /expenses?category=Food`)
+- **Method**: `GET`
+- **URL**: `http://localhost:3000/expenses?category=Food`
+- **cURL Command**:
+  ```bash
+  curl -X GET "http://localhost:3000/expenses?category=Food"
+  ```
+
+#### D. Calculate Total Expenses (`GET /expenses/totals`)
+- **Method**: `GET`
+- **URL**: `http://localhost:3000/expenses/totals`
+- **cURL Command**:
+  ```bash
+  curl -X GET http://localhost:3000/expenses/totals
+  ```
+- **Sample Response**:
+  ```json
+  {
+    "overall_total": 45.50,
+    "total_count": 1,
+    "by_category": {
+      "Food": 45.50
+    }
+  }
+  ```
+
+#### E. Get Single Expense by ID (`GET /expenses/:id`)
+- **Method**: `GET`
+- **URL**: `http://localhost:3000/expenses/<EXPENSE_ID>`
+- **cURL Command**:
+  ```bash
+  curl -X GET http://localhost:3000/expenses/YOUR_EXPENSE_ID_HERE
+  ```
+
+#### F. Delete Expense by ID (`DELETE /expenses/:id`)
+- **Method**: `DELETE`
+- **URL**: `http://localhost:3000/expenses/<EXPENSE_ID>`
+- **cURL Command**:
+  ```bash
+  curl -X DELETE http://localhost:3000/expenses/YOUR_EXPENSE_ID_HERE
+  ```
+
+---
+
+## API Endpoints Summary Table
 
 | Method | Endpoint | Description | Sample Payload / Query |
 | :--- | :--- | :--- | :--- |
